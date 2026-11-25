@@ -1,33 +1,12 @@
 "use client";
 
-import { NextUIProvider } from "@nextui-org/react";
-import CursorTrailCanvas from "@/components/CursorTrailCanvas";
-import Navbar from "@/components/Navbar";
-import { useState } from "react";
-import UnderConstruction from "@/components/UnderConstruction";
-import ScrollUp from "@/components/ScrollUp";
+import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { usePortfolio } from "@/components/PortfolioProvider";
+import { formatExperiencePeriod, sortExperience } from "@/lib/experience";
 
-export default function Landing() {
-  const [isCursorTrailActive, setCursorTrailActive] = useState<boolean>(false);
-
-  return (
-    <NextUIProvider>
-      {isCursorTrailActive && (
-        <CursorTrailCanvas
-          color="hsla(183, 64%, 27%, 0.4)"
-          className="pointer-events-none fixed inset-0 z-[999] h-full w-full"
-        />
-      )}
-      <div className="flex items-center justify-center pt-4">
-        <Navbar
-          isCursorTrailActive={isCursorTrailActive}
-          setCursorTrailActive={setCursorTrailActive}
-        />
-      </div>
-      <main className="flex min-h-screen flex-col items-center justify-between">
-        <UnderConstruction />
-      </main>
-      <ScrollUp />
-    </NextUIProvider>
-  );
+export default function ExperiencePage() {
+  const { data, t, language } = usePortfolio();
+  const experience = useMemo(() => sortExperience(data.experience), [data.experience]);
+  return <><section className="page-top"><div className="eyebrow">03 / {t.experienceLabel}</div><h1>{t.experienceTitle}</h1><p>{t.experienceDescription}</p></section><section className="timeline">{experience.map((item, index) => <motion.article className="timeline-item glass-card" key={`${item.title}-${item.period}`} initial={{ opacity: 0, y: 25 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ delay: index * .08 }}><div className="timeline-meta"><span>{formatExperiencePeriod(item.period, language)}</span><span>{String(index + 1).padStart(2, "0")}</span></div><h3>{item.title}</h3><h4>{item.company}</h4><p>{item.description}</p><div className="tags">{item.tags.map((tag) => <span className="tag" key={tag}>{tag}</span>)}</div></motion.article>)}</section></>;
 }

@@ -10,8 +10,8 @@ export function cursorTrail(props: CursorTrail) {
   const ctx = ref.current?.getContext("2d")!;
   let AnimationFeature = {
     friction: 0.5,
-    trails: 200,
-    size: 40,
+    trails: 24,
+    size: 28,
     dampening: 0.2,
     tension: 0.98,
   };
@@ -22,6 +22,7 @@ export function cursorTrail(props: CursorTrail) {
   };
 
   let running = true;
+  let frameId = 0;
 
   class NewNode {
     x: number;
@@ -118,7 +119,7 @@ export function cursorTrail(props: CursorTrail) {
           x.draw();
         }
       }
-      window.requestAnimationFrame(renderAnimation);
+      frameId = window.requestAnimationFrame(renderAnimation);
     }
   }
 
@@ -168,6 +169,7 @@ export function cursorTrail(props: CursorTrail) {
 
   function stopAnimation() {
     running = false;
+    window.cancelAnimationFrame(frameId);
   }
 
   function startAnimation() {
@@ -189,6 +191,7 @@ export function cursorTrail(props: CursorTrail) {
   }
 
   function cleanUp() {
+    stopAnimation();
     document.removeEventListener("mousemove", move);
     document.removeEventListener("touchmove", createLine);
     document.removeEventListener("touchstart", createLine);

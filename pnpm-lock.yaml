@@ -11,6 +11,9 @@ dependencies:
   framer-motion:
     specifier: ^11.0.22
     version: 11.0.22(react-dom@18.2.0)(react@18.2.0)
+  lucide-react:
+    specifier: ^1.79.0
+    version: 1.79.0(@types/react@18.2.71)(react@18.2.0)
   next:
     specifier: 14.1.4
     version: 14.1.4(react-dom@18.2.0)(react@18.2.0)
@@ -23,6 +26,9 @@ dependencies:
   react-dom:
     specifier: ^18
     version: 18.2.0(react@18.2.0)
+  react-icons:
+    specifier: ^5.7.0
+    version: 5.7.0(react@18.2.0)
   react-responsive:
     specifier: ^10.0.0
     version: 10.0.0(react@18.2.0)
@@ -4456,6 +4462,19 @@ packages:
     dependencies:
       yallist: 4.0.0
 
+  /lucide-react@1.79.0(@types/react@18.2.71)(react@18.2.0):
+    resolution: {integrity: sha512-MDHKxzUobPRyQgt4hHO1z+pUQJKYMvenh8qw+ndWQE0Wg+Hbjli/ZrkZXBGmRBrMvvqDRjkmQj0Z5RbeL/ogNw==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+    dependencies:
+      '@types/react': 18.2.71
+      react: 18.2.0
+    dev: false
+
   /matchmediaquery@0.4.2:
     resolution: {integrity: sha512-wrZpoT50ehYOudhDjt/YvUJc6eUzcdFPdmbizfgvswCKNHD1/OBOHYJpHie+HXpu6bSkEGieFMYk6VuutaiRfA==}
     dependencies:
@@ -4839,6 +4858,14 @@ packages:
       loose-envify: 1.4.0
       react: 18.2.0
       scheduler: 0.23.0
+    dev: false
+
+  /react-icons@5.7.0(react@18.2.0):
+    resolution: {integrity: sha512-LBLy340Rzqy6+/yVhZKT3B/QpP1BZaesGqasf09HPOBzRarcDIFH0WwXlXQfE7q7ipxK4MSiC5DIBWURCny6fw==}
+    peerDependencies:
+      react: '*'
+    dependencies:
+      react: 18.2.0
     dev: false
 
   /react-is@16.13.1:

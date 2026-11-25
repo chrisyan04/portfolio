@@ -1,38 +1,27 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { Button } from "@nextui-org/react";
-import rightDark from "@/public/Icons/right-dark.svg";
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 
 export default function NotFound() {
+  const reducedMotion = useReducedMotion();
+
   return (
-    <section className="h-screen flex flex-col justify-center items-center -mt-10">
-      <h1 className="text-[250px] -mb-10">
-        <span className="text-transparent bg-gradient-to-tr from-pink-800 to-yellow-500 bg-clip-text">
-          {"404"}
-        </span>
-      </h1>
-      <h2 className="pb-10">
-        <span className="text-transparent bg-gradient-to-tr from-pink-700 to-blue-500 bg-clip-text text-6xl">
-          {"page access denied"}
-        </span>
-      </h2>{" "}
-      <Link href="/">
-        <Button
-          className="bg-gradient-to-tr from-pink-800 to-yellow-500 shadow-around flex items-center justify-center text-white text-lg font-bold"
-          size="lg"
-        >
-          {"go back home "}
-          <Image
-            src={rightDark}
-            alt="right dark"
-            height={25}
-            width={25}
-            className="ml-2"
-          />
-        </Button>
-      </Link>
+    <section className="lost-page" aria-labelledby="lost-title">
+      <div className="lost-atmosphere" aria-hidden="true">
+        <div className="zen-nebula zen-nebula-one" />
+        <div className="zen-nebula zen-nebula-two" />
+        <div className="zen-stars zen-stars-near" />
+        <div className="zen-stars zen-stars-far" />
+      </div>
+      <motion.div className="lost-content" initial={{ opacity: 0, y: reducedMotion ? 0 : 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, ease: [0.22, 1, 0.36, 1] }}>
+        <div className="lost-symbol"><Sparkles size={25} strokeWidth={1} aria-hidden="true" /></div>
+        <p className="lost-code">404 · page not found</p>
+        <h1 id="lost-title">A little lost<br /><em>in the universe?</em></h1>
+        <p className="lost-description">This page seems to have drifted away. Let’s get you back to familiar ground.</p>
+        <Link className="lost-link" href="/">Back to the beginning <ArrowUpRight size={17} strokeWidth={1.6} aria-hidden="true" /></Link>
+      </motion.div>
     </section>
   );
 }
