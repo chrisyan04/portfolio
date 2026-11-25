@@ -4,7 +4,10 @@ import { PHOTO_BUCKET, managedPhotoPath, photoPublicUrl } from "@/lib/portfolio-
 
 const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
 const MAX_STORED_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const HEIC_TYPES = new Set(["image/heic", "image/heif", "image/heic-sequence", "image/heif-sequence", "image/x-heic", "image/x-heif"]);
+const HEIC_EXTENSIONS = new Set(["heic", "heif"]);
+const STANDARD_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
 
 function storageConfig() {
   const base = process.env.SUPABASE_URL?.replace(/\/$/, "");
@@ -29,12 +32,23 @@ async function ensurePhotoBucket() {
 }
 
 export async function uploadPortfolioPhoto(file: File) {
-  if (!ALLOWED_TYPES.has(file.type)) throw new Error("Choose a JPG, PNG, or WebP image.");
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const mimeType = file.type.toLowerCase();
+  const missingMimeType = !mimeType || mimeType === "application/octet-stream";
+  const heic = HEIC_TYPES.has(mimeType) || HEIC_EXTENSIONS.has(extension);
+  if (!heic && !ALLOWED_TYPES.has(mimeType) && !(missingMimeType && STANDARD_EXTENSIONS.has(extension))) {
+    throw new Error("Choose a HEIC, JPG, PNG, or WebP image.");
+  }
   if (!file.size || file.size > MAX_SOURCE_BYTES) throw new Error("Choose an image under 10 MB.");
 
   let image: Buffer;
   try {
-    image = await sharp(Buffer.from(await file.arrayBuffer()), { limitInputPixels: 40_000_000 })
+    let input = Buffer.from(await file.arrayBuffer());
+    if (heic) {
+      const { default: convert } = await import("heic-convert");
+      input = Buffer.from(await convert({ buffer: input, format: "JPEG", quality: 0.9 }));
+    }
+    image = await sharp(input, { limitInputPixels: 40_000_000 })
       .rotate()
       .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
       .webp({ quality: 82, effort: 4 })

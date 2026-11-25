@@ -110,7 +110,7 @@ export default function AdminPage() {
       </section>
       <section className="admin-section glass-card">
         <div className="admin-section-heading"><div><h2>What I’ve been up to</h2><p>Upload or remove carousel photos. Changes go live immediately.</p></div>
-          <label className="button admin-photo-upload"><Upload size={16} />{photoBusy ? "Working…" : "Add photos"}<input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={photoBusy || saving || !storageConfigured} onChange={uploadPhotos} /></label>
+          <label className="button admin-photo-upload"><Upload size={16} />{photoBusy ? "Working…" : "Add photos"}<input type="file" accept=".heic,.heif,.jpg,.jpeg,.png,.webp,image/heic,image/heif,image/jpeg,image/png,image/webp" multiple disabled={photoBusy || saving || !storageConfigured} onChange={uploadPhotos} /></label>
         </div>
         <div className="admin-photo-grid">
           {getPortfolioPhotos(draft).map((src, index) => <div className="admin-photo-item" key={`${src}-${index}`}>

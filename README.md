@@ -15,6 +15,6 @@ For a hosted site, set the same environment variables in the hosting provider an
 
 ### Carousel photos
 
-In `/admin`, the **What I’ve been up to** section accepts JPG, PNG, and WebP files up to 10 MB. Uploads are converted to WebP and published immediately; removing a photo also updates the shared site immediately. Other profile edits still use **Publish changes**. The server creates a public `portfolio-photos` Storage bucket on the first upload, using the secret key. The ten bundled portrait cards are demo entries that can be removed one at a time. Add photos and remove the demos as you replace them.
+In `/admin`, the **What I’ve been up to** section accepts HEIC, JPG/JPEG, PNG, and WebP files up to 10 MB. Uploads are converted to WebP and published immediately; removing a photo also updates the shared site immediately. Other profile edits still use **Publish changes**. The server creates a public `portfolio-photos` Storage bucket on the first upload, using the secret key. The ten bundled portrait cards are demo entries that can be removed one at a time. Add photos and remove the demos as you replace them.
 
 Set `SUPABASE_URL` before the production build so Next.js can optimize images from that Storage bucket. Uploaded images are limited to 30 gallery entries.
