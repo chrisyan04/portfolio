@@ -175,3 +175,103 @@ button, input, textarea,
 }
 .mobile-menu-trigger{display:none;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--text);cursor:pointer}.mobile-nav-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2);box-shadow:0 18px 45px rgba(0,0,0,.25)}.mobile-nav-panel a{display:block;padding:12px;border-radius:9px;color:var(--text);font-size:14px}.mobile-nav-panel a:hover{background:var(--line)}
 @media(max-width:800px){.mobile-menu-trigger{display:flex}.mobile-nav-panel{display:block}.nav-actions{gap:10px}.status-dot{display:none}}
+
+.home-grid.hero-layout {
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
+  gap: clamp(44px, 6vw, 92px);
+}
+.hero-layout .hero-intro { min-width: 0; }
+.hero-intro .eyebrow {
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: none;
+}
+.hero-layout .hero-title {
+  max-width: 750px;
+  font-size: clamp(64px, 7.5vw, 108px);
+  line-height: 1.01;
+}
+.hero-layout .hero-copy { font-size: clamp(17px, 1.5vw, 20px); }
+.hero-portrait {
+  position: relative;
+  width: min(100%, 440px);
+  margin: 0 auto;
+  padding: 11px;
+  border: 1px solid rgba(168, 121, 255, .35);
+  border-radius: 30px;
+  background: linear-gradient(145deg, rgba(168, 121, 255, .17), rgba(79, 224, 208, .08) 55%, rgba(168, 121, 255, .08));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .23), 0 0 90px rgba(168, 121, 255, .12);
+}
+.hero-portrait::before {
+  content: "";
+  position: absolute;
+  inset: 12% -8%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(168, 121, 255, .19), transparent 70%);
+  filter: blur(35px);
+  pointer-events: none;
+}
+.hero-portrait-frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 21px;
+  background: #c9c8cc;
+}
+.hero-portrait-frame img {
+  object-fit: cover;
+  object-position: center 31%;
+}
+.hero-photo-icon {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(168, 121, 255, .42);
+  border-radius: 17px;
+  background: var(--surface-2);
+  color: var(--purple);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .2), 0 0 25px rgba(168, 121, 255, .12);
+  animation: portraitFloat 5s ease-in-out infinite;
+  transition: border-color .25s ease, background .25s ease, box-shadow .25s ease, color .25s ease;
+  cursor: pointer;
+}
+.hero-photo-icon svg { transition: scale .25s ease; }
+.hero-photo-icon:hover,
+.hero-photo-icon:focus-visible {
+  border-color: var(--teal);
+  background: var(--surface-2);
+  color: var(--teal);
+  box-shadow: 0 14px 40px rgba(79, 224, 208, .22), 0 0 0 5px rgba(79, 224, 208, .1);
+}
+.hero-photo-icon:hover svg,
+.hero-photo-icon:focus-visible svg { scale: 1.18; }
+.hero-photo-icon:focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; }
+.hero-photo-icon-sparkle { top: 7%; left: -30px; color: var(--teal); }
+.hero-photo-icon-code { top: 44%; right: -28px; animation-delay: -1.6s; }
+.hero-photo-icon-idea { bottom: 9%; left: -27px; color: var(--pink); animation-delay: -3.1s; }
+@keyframes portraitFloat {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-12px) rotate(5deg); }
+}
+@media (max-width: 800px) {
+  .home-grid.hero-layout { grid-template-columns: 1fr; gap: 48px; padding-top: 80px; }
+  .hero-layout .hero-title { font-size: clamp(56px, 12vw, 88px); }
+  .hero-portrait { width: min(78vw, 440px); }
+}
+@media (max-width: 500px) {
+  .hero-layout .hero-title { font-size: clamp(48px, 11vw, 64px); }
+  .hero-layout .hero-actions { flex-wrap: wrap; }
+  .hero-portrait { width: min(100%, 350px); }
+  .hero-photo-icon { width: 44px; height: 44px; border-radius: 14px; }
+  .hero-photo-icon-sparkle { left: -14px; }
+  .hero-photo-icon-code { right: -14px; }
+  .hero-photo-icon-idea { left: -14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-photo-icon { animation: none; transition: none; }
+  .hero-photo-icon svg { transition: none; }
+}
