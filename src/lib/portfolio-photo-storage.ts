@@ -1,13 +1,9 @@
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { PHOTO_BUCKET, managedPhotoPath, photoPublicUrl } from "@/lib/portfolio-photo-urls";
+import { photoFormat } from "@/lib/portfolio-photo-format";
 
-const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
 const MAX_STORED_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
-const HEIC_TYPES = new Set(["image/heic", "image/heif", "image/heic-sequence", "image/heif-sequence", "image/x-heic", "image/x-heif"]);
-const HEIC_EXTENSIONS = new Set(["heic", "heif"]);
-const STANDARD_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
 
 function storageConfig() {
   const base = process.env.SUPABASE_URL?.replace(/\/$/, "");
@@ -32,14 +28,7 @@ async function ensurePhotoBucket() {
 }
 
 export async function uploadPortfolioPhoto(file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-  const mimeType = file.type.toLowerCase();
-  const missingMimeType = !mimeType || mimeType === "application/octet-stream";
-  const heic = HEIC_TYPES.has(mimeType) || HEIC_EXTENSIONS.has(extension);
-  if (!heic && !ALLOWED_TYPES.has(mimeType) && !(missingMimeType && STANDARD_EXTENSIONS.has(extension))) {
-    throw new Error("Choose a HEIC, JPG, PNG, or WebP image.");
-  }
-  if (!file.size || file.size > MAX_SOURCE_BYTES) throw new Error("Choose an image under 10 MB.");
+  const { heic } = photoFormat(file.name, file.type, file.size);
 
   let image: Buffer;
   try {

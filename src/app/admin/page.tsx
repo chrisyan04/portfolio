@@ -72,9 +72,24 @@ export default function AdminPage() {
     let completed = 0;
     try {
       for (const file of files) {
-        const body = new FormData();
-        body.set("file", file);
-        const response = await fetch("/api/admin/photos", { method: "POST", body });
+        const prepareResponse = await fetch("/api/admin/photos/prepare", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: file.name, type: file.type, size: file.size }),
+        });
+        const prepared = await prepareResponse.json();
+        if (!prepareResponse.ok) throw new Error(prepared.error || "Could not prepare photo upload.");
+        const storageResponse = await fetch(prepared.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": prepared.contentType },
+          body: file,
+        });
+        if (!storageResponse.ok) throw new Error("Photo transfer failed. Please try again.");
+        const response = await fetch("/api/admin/photos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: prepared.path }),
+        });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Could not upload photo.");
         setData(result.data);
@@ -109,7 +124,7 @@ export default function AdminPage() {
         <label className="field"><span>bio</span><textarea value={draft.bio} onChange={(event) => updateField("bio", event.target.value)} /></label>
       </section>
       <section className="admin-section glass-card">
-        <div className="admin-section-heading"><div><h2>What I’ve been up to</h2><p>Upload or remove carousel photos. Changes go live immediately.</p></div>
+        <div className="admin-section-heading"><div><h2>What I’ve been up to</h2><p>Upload photos up to 10 MB or remove them. Changes go live immediately.</p></div>
           <label className="button admin-photo-upload"><Upload size={16} />{photoBusy ? "Working…" : "Add photos"}<input type="file" accept=".heic,.heif,.jpg,.jpeg,.png,.webp,image/heic,image/heif,image/jpeg,image/png,image/webp" multiple disabled={photoBusy || saving || !storageConfigured} onChange={uploadPhotos} /></label>
         </div>
         <div className="admin-photo-grid">

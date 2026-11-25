@@ -3,22 +3,24 @@ import { hasValidSession } from "@/lib/admin-auth";
 import { getPortfolioPhotos } from "@/lib/portfolio";
 import { readPublishedPortfolio, writePublishedPortfolio } from "@/lib/portfolio-store";
 import { deletePortfolioPhoto, uploadPortfolioPhoto } from "@/lib/portfolio-photo-storage";
+import { deleteStagedPhoto, readStagedPhoto } from "@/lib/portfolio-photo-staging";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   if (!hasValidSession()) return NextResponse.json({ error: "Admin access required." }, { status: 401 });
-  let file: FormDataEntryValue | null;
-  try { file = (await request.formData()).get("file"); }
+  let path: unknown;
+  try { ({ path } = await request.json()); }
   catch { return NextResponse.json({ error: "Invalid upload." }, { status: 400 }); }
-  if (!(file instanceof File)) return NextResponse.json({ error: "Choose an image to upload." }, { status: 400 });
+  if (typeof path !== "string") return NextResponse.json({ error: "Invalid upload path." }, { status: 400 });
 
   let src: string | null = null;
   try {
     const current = await readPublishedPortfolio();
     const photos = getPortfolioPhotos(current.data);
     if (photos.length >= 30) return NextResponse.json({ error: "The gallery can hold up to 30 photos." }, { status: 400 });
+    const file = await readStagedPhoto(path);
     src = await uploadPortfolioPhoto(file);
     const data = { ...current.data, photos: [...photos, src] };
     await writePublishedPortfolio(data);
@@ -26,7 +28,9 @@ export async function POST(request: Request) {
   } catch (error) {
     if (src) await deletePortfolioPhoto(src).catch((cleanupError) => console.error("Could not clean up photo", cleanupError));
     console.error("Could not upload portfolio photo", error);
-    return NextResponse.json({ error: error instanceof Error && !/failed|configured/i.test(error.message) ? error.message : "Could not upload photo. Please try again." }, { status: 400 });
+    return NextResponse.json({ error: error instanceof Error && /^(Choose|The image|The processed)/.test(error.message) ? error.message : "Could not upload photo. Please try again." }, { status: 400 });
+  } finally {
+    await deleteStagedPhoto(path).catch((cleanupError) => console.error("Could not clean up staged photo", cleanupError));
   }
 }
 
