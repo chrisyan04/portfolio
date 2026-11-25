@@ -1,10 +1,11 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { defaultPortfolio, Language, PortfolioData, storageKeys, translations } from "@/lib/portfolio";
+import { defaultPortfolio, Language, localizePortfolio, PortfolioData, storageKeys, translations } from "@/lib/portfolio";
 
 type PortfolioContextValue = {
   data: PortfolioData;
+  localizedData: PortfolioData;
   setData: (data: PortfolioData) => void;
   contentReady: boolean;
   storageConfigured: boolean;
@@ -60,11 +61,14 @@ export function PortfolioProvider({ children, initialContent }: { children: Reac
     document.addEventListener("visibilitychange", onVisible);
     return () => { active = false; window.clearInterval(interval); document.removeEventListener("visibilitychange", onVisible); };
   }, [hasInitialContent]);
-  useEffect(() => localStorage.setItem(storageKeys.language, language), [language]);
+  useEffect(() => {
+    localStorage.setItem(storageKeys.language, language);
+    document.documentElement.lang = language === "zh" ? "zh-CN" : language;
+  }, [language]);
   useEffect(() => localStorage.setItem(storageKeys.light, String(light)), [light]);
   useEffect(() => localStorage.setItem(storageKeys.trail, String(trail)), [trail]);
 
-  const value = useMemo(() => ({ data, setData, contentReady, storageConfigured, language, setLanguage, light, setLight, trail, setTrail, t: translations[language] }), [data, contentReady, storageConfigured, language, light, trail]);
+  const value = useMemo(() => ({ data, localizedData: localizePortfolio(data, language), setData, contentReady, storageConfigured, language, setLanguage, light, setLight, trail, setTrail, t: translations[language] }), [data, contentReady, storageConfigured, language, light, trail]);
   return <PortfolioContext.Provider value={value}>{children}</PortfolioContext.Provider>;
 }
 

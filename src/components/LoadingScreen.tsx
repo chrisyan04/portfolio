@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUp, Sparkles } from "lucide-react";
+import { usePortfolio } from "@/components/PortfolioProvider";
 
 export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
   const [dragY, setDragY] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const startY = useRef<number | null>(null);
   const reducedMotion = useReducedMotion();
+  const { t } = usePortfolio();
   const enter = useCallback(() => setLeaving(true), []);
 
   useEffect(() => {
@@ -57,9 +59,9 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       <div className="zen-top"><span className="zen-monogram">CY</span><span>Chris Yan · Portfolio</span></div>
       <div className="zen-center">
         <motion.div className="zen-halo" initial={{ opacity: 0, scale: .92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: reducedMotion ? 0 : 1.1 }} aria-hidden="true"><Sparkles size={28} strokeWidth={1} /></motion.div>
-        <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .2, duration: .8 }}>Welcome to<br /><em>my corner of the web.</em></motion.h1>
+        <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .2, duration: .8 }}>{t.loadingWelcome}<br /><em>{t.loadingAccent}</em></motion.h1>
       </div>
-      <div className="zen-bottom"><span>Scroll or swipe up</span><ArrowUp size={17} strokeWidth={1.5} /></div>
+      <div className="zen-bottom"><span>{t.loadingHint}</span><ArrowUp size={17} strokeWidth={1.5} /></div>
     </motion.div>
   );
 }

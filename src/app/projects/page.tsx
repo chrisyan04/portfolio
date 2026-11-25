@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { usePortfolio } from "@/components/PortfolioProvider";
 
 export default function ProjectsPage() {
-  const { data, t } = usePortfolio();
+  const { localizedData: data, t } = usePortfolio();
   return <>
     <section className="page-top">
       <div className="eyebrow">04 / {t.projectsLabel}</div>

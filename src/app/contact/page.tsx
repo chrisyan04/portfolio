@@ -13,7 +13,7 @@ const socialLinks = [
 ];
 
 export default function ContactPage() {
-  const { data, t } = usePortfolio();
+  const { localizedData: data, t } = usePortfolio();
   const [lines, setLines] = useState<string[]>([]);
   const [input, setInput] = useState("");
 
@@ -31,7 +31,7 @@ export default function ContactPage() {
 
   return <section className="contact-grid contact-layout">
     <div className="contact-copy">
-      <div className="page-top contact-heading"><div className="eyebrow">05 / {t.contactLabel}</div><h1>{t.connect}<br /><span className="gradient-text">{t.noForms}</span></h1></div>
+      <div className="page-top contact-heading"><div className="eyebrow">06 / {t.contactLabel}</div><h1>{t.connect}<br /><span className="gradient-text">{t.noForms}</span></h1></div>
       <p>{t.contactDescription}</p>
       <Link className="contact-email-cta" href={`mailto:${data.email}`} aria-label={`${t.emailMe}: ${data.email}`}><span className="contact-email-icon"><Mail size={22} strokeWidth={1.8} aria-hidden="true" /></span><span className="contact-email-copy"><strong>{t.emailMe}</strong><span>{data.email}</span></span><ArrowUpRight className="contact-email-arrow" size={21} strokeWidth={1.8} aria-hidden="true" /></Link>
       <p className="contact-location"><MapPin size={15} strokeWidth={1.8} aria-hidden="true" />{data.location}</p>

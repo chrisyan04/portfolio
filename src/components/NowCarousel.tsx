@@ -1,48 +1,54 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { usePortfolio } from "@/components/PortfolioProvider";
 import { getPortfolioPhotos } from "@/lib/portfolio";
 
 type SwipeDirection = -1 | 1;
 
-function SwipeCard({ src, alt, onSwipe, reducedMotion, canSwipe }: {
+const PEEL_DURATION = 0.52;
+const PEEL_EASE = [0.25, 0.1, 0.25, 1] as const;
+
+function SwipeCard({ src, alt, onSwipe, onPreviewDirection, reducedMotion, canSwipe }: {
   src: string;
   alt: string;
   onSwipe: (direction: SwipeDirection) => void;
+  onPreviewDirection: (direction: SwipeDirection) => void;
   reducedMotion: boolean;
   canSwipe: boolean;
 }) {
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-240, 240], [-15, 15]);
-
   return <motion.div
     className="now-card now-card-front"
-    style={{ x, rotate, touchAction: "pan-y" }}
-    initial={reducedMotion ? false : { opacity: 0, scale: .92, y: -16 }}
-    animate={{ opacity: 1, scale: 1, y: 0, zIndex: 3 }}
-    transition={{ type: "spring", stiffness: 145, damping: 24, mass: 1.1, opacity: { duration: .38 } }}
+    style={{ touchAction: "pan-y" }}
+    initial={reducedMotion ? false : { x: 0, y: -10, rotate: 2, scale: .955, opacity: 1 }}
+    animate={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 1, zIndex: 3 }}
+    transition={reducedMotion ? { duration: 0 } : { duration: PEEL_DURATION, ease: PEEL_EASE }}
     variants={{
       exit: (direction: SwipeDirection) => ({
-        x: reducedMotion ? 0 : direction * 680,
-        rotate: reducedMotion ? 0 : direction * 16,
-        opacity: reducedMotion ? 0 : .15,
-        scale: .96,
+        x: reducedMotion ? 0 : direction * 620,
+        y: reducedMotion ? 0 : 24,
+        rotate: reducedMotion ? 0 : direction * 15,
+        opacity: 0,
+        scale: 1,
         zIndex: 4,
-        transition: reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 145, damping: 23, mass: 1.3, opacity: { duration: .7 } },
+        transition: reducedMotion ? { duration: 0 } : { duration: PEEL_DURATION, ease: PEEL_EASE, opacity: { duration: .18, delay: .34 } },
       }),
     }}
     exit="exit"
     drag={reducedMotion || !canSwipe ? false : "x"}
     dragConstraints={{ left: 0, right: 0 }}
-    dragElastic={.65}
+    dragElastic={.55}
     dragMomentum={false}
-    whileDrag={{ scale: 1.02 }}
+    dragTransition={{ bounceStiffness: 260, bounceDamping: 28 }}
+    whileDrag={{ scale: 1.015 }}
+    onDrag={(_, info) => {
+      if (Math.abs(info.offset.x) > 12) onPreviewDirection(info.offset.x < 0 ? -1 : 1);
+    }}
     onDragEnd={(_, info) => {
-      if (Math.abs(info.offset.x) > 90 || (Math.abs(info.velocity.x) > 550 && Math.abs(info.offset.x) > 25)) {
+      if (Math.abs(info.offset.x) > 85 || (Math.abs(info.velocity.x) > 550 && Math.abs(info.offset.x) > 24)) {
         onSwipe(info.offset.x < 0 ? -1 : 1);
       }
     }}
@@ -56,19 +62,20 @@ export function NowCarousel() {
   const photos = getPortfolioPhotos(data);
   const reducedMotion = Boolean(useReducedMotion());
   const [active, setActive] = useState(0);
-  const [direction, setDirection] = useState<SwipeDirection>(1);
+  const [direction, setDirection] = useState<SwipeDirection>(-1);
   const transitioning = useRef(false);
-  const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewDirection = useRef<SwipeDirection>(-1);
 
-  useEffect(() => () => {
-    if (transitionTimer.current) clearTimeout(transitionTimer.current);
-  }, []);
+  function showDirection(nextDirection: SwipeDirection) {
+    if (previewDirection.current === nextDirection) return;
+    previewDirection.current = nextDirection;
+    setDirection(nextDirection);
+  }
 
   function swipe(nextDirection: SwipeDirection) {
     if (photos.length < 2 || transitioning.current) return;
     transitioning.current = true;
-    transitionTimer.current = setTimeout(() => { transitioning.current = false; }, reducedMotion ? 0 : 680);
-    setDirection(nextDirection);
+    showDirection(nextDirection);
     setActive((index) => (index + (nextDirection === -1 ? 1 : -1) + photos.length) % photos.length);
   }
 
@@ -81,8 +88,8 @@ export function NowCarousel() {
       {[2, 1].map((depth) => <div className="now-card now-card-back" key={depth} style={{ transform: `translateY(${-depth * 10}px) scale(${1 - depth * .045}) rotate(${depth === 1 ? 2 : -2}deg)`, zIndex: 2 - depth }} aria-hidden="true">
         <Image src={photos[(currentIndex + (direction === -1 ? depth : -depth) + photos.length) % photos.length]} alt="" fill sizes="(max-width: 800px) 85vw, 390px" draggable={false} />
       </div>)}
-      <AnimatePresence initial={false} custom={direction}>
-        <SwipeCard key={`${currentIndex}-${photos[currentIndex]}`} src={photos[currentIndex]} alt={t.carouselPhotoAlt} reducedMotion={reducedMotion} canSwipe={photos.length > 1} onSwipe={swipe} />
+      <AnimatePresence initial={false} custom={direction} onExitComplete={() => { transitioning.current = false; }}>
+        <SwipeCard key={`${currentIndex}-${photos[currentIndex]}`} src={photos[currentIndex]} alt={t.carouselPhotoAlt} reducedMotion={reducedMotion} canSwipe={photos.length > 1} onSwipe={swipe} onPreviewDirection={showDirection} />
       </AnimatePresence>
     </div>
     <div className="now-carousel-footer">

@@ -10,7 +10,7 @@ import { NowCarousel } from "@/components/NowCarousel";
 import { getCurrentExperience } from "@/lib/experience";
 
 export default function HomePage() {
-  const { data, language, t } = usePortfolio();
+  const { localizedData: data, language, t } = usePortfolio();
   const currentExperience = getCurrentExperience(data.experience);
   return <>
     <section className="home-grid hero-layout">
