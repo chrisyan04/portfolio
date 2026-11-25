@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasValidSession } from "@/lib/admin-auth";
 import { isPortfolioData } from "@/lib/portfolio-validation";
-import { portfolioDatabase, readPublishedPortfolio } from "@/lib/portfolio-store";
+import { portfolioDatabase, readPublishedPortfolio, writePublishedPortfolio } from "@/lib/portfolio-store";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +25,10 @@ export async function PUT(request: Request) {
   if (!isPortfolioData(data)) return NextResponse.json({ error: "Some portfolio fields are invalid or too long." }, { status: 400 });
 
   try {
-    const response = await fetch(`${database.url}?on_conflict=id`, {
-      method: "POST",
-      headers: { apikey: secretKey, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: JSON.stringify({ id: "main", content: data }),
-      cache: "no-store",
-    });
-    if (!response.ok) throw new Error(`Database write failed: ${response.status}`);
-    return NextResponse.json({ data });
+    const current = await readPublishedPortfolio();
+    const published = { ...data, photos: data.photos ?? current.data.photos };
+    await writePublishedPortfolio(published);
+    return NextResponse.json({ data: published });
   } catch (error) {
     console.error("Could not save portfolio content", error);
     return NextResponse.json({ error: "Could not publish changes. Please try again." }, { status: 503 });

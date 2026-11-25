@@ -1,27 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { usePortfolio } from "@/components/PortfolioProvider";
-import type { Language } from "@/lib/portfolio";
+import { getPortfolioPhotos } from "@/lib/portfolio";
 
-type Photo = { src: string; alt: Record<Language, string> };
 type SwipeDirection = -1 | 1;
 
-// Replace these demo entries with individual photos when they are available.
-const placeholderPhoto: Photo = {
-  src: "/me-professional.jpg",
-  alt: { en: "Portrait of Chris Yan", fr: "Portrait de Chris Yan", zh: "Chris Yan 的肖像照" },
-};
-const photos: Photo[] = Array.from({ length: 10 }, () => placeholderPhoto);
-
-function SwipeCard({ photo, language, onSwipe, reducedMotion }: {
-  photo: Photo;
-  language: Language;
+function SwipeCard({ src, alt, onSwipe, reducedMotion, canSwipe }: {
+  src: string;
+  alt: string;
   onSwipe: (direction: SwipeDirection) => void;
   reducedMotion: boolean;
+  canSwipe: boolean;
 }) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-240, 240], [-15, 15]);
@@ -29,61 +22,76 @@ function SwipeCard({ photo, language, onSwipe, reducedMotion }: {
   return <motion.div
     className="now-card now-card-front"
     style={{ x, rotate, touchAction: "pan-y" }}
-    initial={reducedMotion ? false : { opacity: 0, scale: .96 }}
-    animate={{ opacity: 1, scale: 1, zIndex: 3 }}
+    initial={reducedMotion ? false : { opacity: 0, scale: .92, y: -16 }}
+    animate={{ opacity: 1, scale: 1, y: 0, zIndex: 3 }}
+    transition={{ type: "spring", stiffness: 145, damping: 24, mass: 1.1, opacity: { duration: .38 } }}
     variants={{
       exit: (direction: SwipeDirection) => ({
-        x: reducedMotion ? 0 : direction * 620,
-        rotate: reducedMotion ? 0 : direction * 18,
-        opacity: 0,
-        scale: .94,
+        x: reducedMotion ? 0 : direction * 680,
+        rotate: reducedMotion ? 0 : direction * 16,
+        opacity: reducedMotion ? 0 : .15,
+        scale: .96,
         zIndex: 4,
-        transition: { duration: reducedMotion ? 0 : .42, ease: "easeOut" },
+        transition: reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 145, damping: 23, mass: 1.3, opacity: { duration: .7 } },
       }),
     }}
     exit="exit"
-    drag={reducedMotion ? false : "x"}
+    drag={reducedMotion || !canSwipe ? false : "x"}
     dragConstraints={{ left: 0, right: 0 }}
-    dragElastic={.85}
+    dragElastic={.65}
     dragMomentum={false}
-    whileDrag={{ scale: 1.03 }}
+    whileDrag={{ scale: 1.02 }}
     onDragEnd={(_, info) => {
       if (Math.abs(info.offset.x) > 90 || (Math.abs(info.velocity.x) > 550 && Math.abs(info.offset.x) > 25)) {
         onSwipe(info.offset.x < 0 ? -1 : 1);
       }
     }}
   >
-    <Image src={photo.src} alt={photo.alt[language]} fill sizes="(max-width: 800px) 85vw, 390px" draggable={false} />
+    <Image src={src} alt={alt} fill sizes="(max-width: 800px) 85vw, 390px" draggable={false} />
   </motion.div>;
 }
 
 export function NowCarousel() {
-  const { language, t } = usePortfolio();
+  const { data, t } = usePortfolio();
+  const photos = getPortfolioPhotos(data);
   const reducedMotion = Boolean(useReducedMotion());
   const [active, setActive] = useState(0);
   const [direction, setDirection] = useState<SwipeDirection>(1);
+  const transitioning = useRef(false);
+  const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (transitionTimer.current) clearTimeout(transitionTimer.current);
+  }, []);
 
   function swipe(nextDirection: SwipeDirection) {
+    if (photos.length < 2 || transitioning.current) return;
+    transitioning.current = true;
+    transitionTimer.current = setTimeout(() => { transitioning.current = false; }, reducedMotion ? 0 : 680);
     setDirection(nextDirection);
-    setActive((index) => (index + 1) % photos.length);
+    setActive((index) => (index + (nextDirection === -1 ? 1 : -1) + photos.length) % photos.length);
   }
+
+  const currentIndex = photos.length ? active % photos.length : 0;
+
+  if (!photos.length) return <div className="now-carousel now-carousel-empty">{t.nowEmpty}</div>;
 
   return <motion.div className="now-carousel" role="region" aria-roledescription="carousel" aria-label={t.nowTitle} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ duration: reducedMotion ? 0 : .6 }}>
     <div className="now-carousel-image">
       {[2, 1].map((depth) => <div className="now-card now-card-back" key={depth} style={{ transform: `translateY(${-depth * 10}px) scale(${1 - depth * .045}) rotate(${depth === 1 ? 2 : -2}deg)`, zIndex: 2 - depth }} aria-hidden="true">
-        <Image src={photos[(active + depth) % photos.length].src} alt="" fill sizes="(max-width: 800px) 85vw, 390px" draggable={false} />
+        <Image src={photos[(currentIndex + (direction === -1 ? depth : -depth) + photos.length) % photos.length]} alt="" fill sizes="(max-width: 800px) 85vw, 390px" draggable={false} />
       </div>)}
       <AnimatePresence initial={false} custom={direction}>
-        <SwipeCard key={active} photo={photos[active]} language={language} reducedMotion={reducedMotion} onSwipe={swipe} />
+        <SwipeCard key={`${currentIndex}-${photos[currentIndex]}`} src={photos[currentIndex]} alt={t.carouselPhotoAlt} reducedMotion={reducedMotion} canSwipe={photos.length > 1} onSwipe={swipe} />
       </AnimatePresence>
     </div>
     <div className="now-carousel-footer">
-      <span className="now-carousel-count">{String(active + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}</span>
-      <span className="now-carousel-hint">{t.swipeHint}</span>
-      <div className="now-carousel-controls">
+      <span className="now-carousel-count">{String(currentIndex + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}</span>
+      {photos.length > 1 && <span className="now-carousel-hint">{t.swipeHint}</span>}
+      {photos.length > 1 && <div className="now-carousel-controls">
         <button type="button" aria-label={t.swipeLeft} onClick={() => swipe(-1)}><ArrowLeft size={18} /></button>
         <button type="button" aria-label={t.swipeRight} onClick={() => swipe(1)}><ArrowRight size={18} /></button>
-      </div>
+      </div>}
     </div>
   </motion.div>;
 }

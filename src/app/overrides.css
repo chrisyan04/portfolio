@@ -494,3 +494,17 @@ button, input, textarea,
 @media (prefers-reduced-motion: reduce) {
   .now-carousel-controls button { transition: none; }
 }
+.now-carousel-empty { display: grid; place-items: center; min-height: 300px; color: var(--muted); text-align: center; }
+
+.admin-photo-upload { position: relative; gap: 8px; cursor: pointer; }
+.admin-photo-upload:focus-within { outline: 2px solid var(--teal); outline-offset: 3px; }
+.admin-photo-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.admin-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 13px; margin-top: 12px; }
+.admin-photo-item { min-width: 0; padding: 7px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.admin-photo-preview { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 9px; background: var(--surface-2); }
+.admin-photo-preview img { object-fit: cover; object-position: center 30%; }
+.admin-photo-item-footer { display: flex; align-items: center; justify-content: space-between; padding: 7px 3px 1px; color: var(--muted); font-size: 11px; letter-spacing: .1em; }
+.admin-photo-item-footer button { display: grid; place-items: center; width: 29px; height: 29px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.admin-photo-item-footer button:hover, .admin-photo-item-footer button:focus-visible { background: rgba(255, 120, 140, .12); color: #ff8d9a; }
+.admin-photo-item-footer button:disabled, .admin-photo-upload:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+.admin-photo-message { margin: 14px 0 0; color: var(--teal); font-size: 13px; }
