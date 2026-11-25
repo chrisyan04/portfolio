@@ -10,13 +10,16 @@ import { NowCarousel } from "@/components/NowCarousel";
 import { getCurrentExperience } from "@/lib/experience";
 
 export default function HomePage() {
-  const { data, t } = usePortfolio();
+  const { data, language, t } = usePortfolio();
   const currentExperience = getCurrentExperience(data.experience);
   return <>
     <section className="home-grid hero-layout">
       <motion.div className="hero-intro" initial={{ opacity: 0, x: -25 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .7 }}>
         <div className="eyebrow">{t.greeting}</div>
-        <h1 className="hero-title">{t.hero} <span className="gradient-text">{t.heroAccent}</span></h1>
+        <h1 className="hero-title">
+          <span className="hero-welcome">{t.hero}</span>
+          <span className={`hero-invite hero-invite-${language} gradient-text`}>{t.heroAccent}</span>
+        </h1>
         <p className="hero-copy">{data.bio}</p>
         <div className="hero-actions">
           <Link className="button primary" href="/experience">{t.viewWork} ↗</Link>

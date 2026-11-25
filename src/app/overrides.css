@@ -193,6 +193,16 @@ button, input, textarea,
   letter-spacing: -.045em;
   padding-block: .04em .08em;
 }
+.hero-layout .hero-welcome { display: block; }
+.hero-layout .hero-invite {
+  display: block;
+  width: max-content;
+  white-space: nowrap;
+  font-size: clamp(30px, 5vw, 70px);
+  line-height: 1.22;
+  letter-spacing: -.035em;
+}
+.hero-layout .hero-invite-fr { font-size: clamp(21px, 3.8vw, 54px); }
 .hero-layout .gradient-text {
   padding-inline: .045em;
   margin-inline: -.045em;
