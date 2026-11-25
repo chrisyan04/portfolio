@@ -1,5 +1,6 @@
 import { defaultPortfolio, type PortfolioData } from "@/lib/portfolio";
 import { isPortfolioData } from "@/lib/portfolio-validation";
+import { bundledPhotos, GALLERY_VERSION } from "@/lib/gallery-photos";
 
 export function portfolioDatabase() {
   const url = process.env.SUPABASE_URL;
@@ -18,7 +19,12 @@ export async function readPublishedPortfolio() {
   if (!response.ok) throw new Error(`Database read failed: ${response.status}`);
   const rows = await response.json();
   const content = rows[0]?.content;
-  return { data: isPortfolioData(content) ? { ...content, photos: content.photos ?? defaultPortfolio.photos } : defaultPortfolio, configured: true };
+  const data = isPortfolioData(content)
+    ? content.galleryVersion === GALLERY_VERSION
+      ? { ...content, photos: content.photos ?? [...bundledPhotos] }
+      : { ...content, photos: [...bundledPhotos], galleryVersion: GALLERY_VERSION }
+    : defaultPortfolio;
+  return { data, configured: true };
 }
 
 export async function writePublishedPortfolio(data: PortfolioData) {

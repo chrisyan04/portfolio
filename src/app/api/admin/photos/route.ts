@@ -4,6 +4,7 @@ import { getPortfolioPhotos } from "@/lib/portfolio";
 import { readPublishedPortfolio, writePublishedPortfolio } from "@/lib/portfolio-store";
 import { deletePortfolioPhoto, uploadPortfolioPhoto } from "@/lib/portfolio-photo-storage";
 import { deleteStagedPhoto, readStagedPhoto } from "@/lib/portfolio-photo-staging";
+import { MAX_GALLERY_PHOTOS } from "@/lib/gallery-photos";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   try {
     const current = await readPublishedPortfolio();
     const photos = getPortfolioPhotos(current.data);
-    if (photos.length >= 30) return NextResponse.json({ error: "The gallery can hold up to 30 photos." }, { status: 400 });
+    if (photos.length >= MAX_GALLERY_PHOTOS) return NextResponse.json({ error: `The gallery can hold up to ${MAX_GALLERY_PHOTOS} photos.` }, { status: 400 });
     const file = await readStagedPhoto(path);
     src = await uploadPortfolioPhoto(file);
     const data = { ...current.data, photos: [...photos, src] };

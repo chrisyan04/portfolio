@@ -1,3 +1,5 @@
+import { bundledPhotos, GALLERY_VERSION } from "@/lib/gallery-photos";
+
 export type Language = "en" | "fr" | "zh";
 export type PortfolioData = {
   name: string; role: string; location: string; bio: string; email: string; availability: string;
@@ -5,10 +7,10 @@ export type PortfolioData = {
   experience: { period: string; title: string; company: string; description: string; tags: string[] }[];
   projects: { title: string; description: string; tags: string[]; url: string }[];
   photos?: string[];
+  galleryVersion?: number;
 };
 
-export const demoPhotos = Array.from({ length: 10 }, () => "/me-professional.jpg");
-export function getPortfolioPhotos(data: PortfolioData) { return data.photos ?? demoPhotos; }
+export function getPortfolioPhotos(data: PortfolioData) { return data.photos ?? [...bundledPhotos]; }
 
 export const defaultPortfolio: PortfolioData = {
   name: "Chris Yan", role: "Software engineer & data storyteller", location: "Toronto, Canada",
@@ -24,7 +26,8 @@ export const defaultPortfolio: PortfolioData = {
     { title: "Not LinkedIn", description: "A playful personal space for the things that do not belong on a resume.", tags: ["Creative", "Web", "Identity"], url: "" },
     { title: "Portfolio / 02", description: "This site — rebuilt as a living interface, not a static business card.", tags: ["Next.js", "Motion", "Systems"], url: "#" },
   ],
-  photos: demoPhotos,
+  photos: [...bundledPhotos],
+  galleryVersion: GALLERY_VERSION,
 };
 
 export const translations = {

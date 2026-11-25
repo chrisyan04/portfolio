@@ -15,6 +15,8 @@ For a hosted site, set the same environment variables in the hosting provider an
 
 ### Carousel photos
 
-In `/admin`, the **What I’ve been up to** section accepts HEIC, JPG/JPEG, PNG, and WebP files up to 10 MB. The browser sends the original file directly to a private, temporary Supabase Storage bucket, avoiding the hosting function's request size limit. The server then converts it to WebP (up to 5 MB), publishes it to the public `portfolio-photos` bucket, and removes the temporary file. Photo changes go live immediately; other profile edits still use **Publish changes**. The server creates both buckets on the first upload using the secret key. The ten bundled portrait cards are demo entries that can be removed one at a time.
+The carousel starts with 32 optimized photos in `public/gallery`. They are bundled with the site and replace the earlier portrait placeholders and matching uploaded copies. Once this version is deployed, the gallery is seeded on the next content read; later additions and removals in `/admin` are saved for everyone.
 
-Set `SUPABASE_URL` before the production build so Next.js can optimize images from that Storage bucket. Uploaded images are limited to 30 gallery entries.
+In `/admin`, the **What I’ve been up to** section accepts HEIC, JPG/JPEG, PNG, and WebP files up to 10 MB. The browser sends the original file directly to a private, temporary Supabase Storage bucket, avoiding the hosting function's request size limit. The server then converts it to WebP (up to 5 MB), publishes it to the public `portfolio-photos` bucket, and removes the temporary file. Photo changes go live immediately; other profile edits still use **Publish changes**. The server creates both buckets on the first upload using the secret key.
+
+Set `SUPABASE_URL` before the production build so Next.js can optimize images from that Storage bucket. The gallery supports up to 60 photos total.
