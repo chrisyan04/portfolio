@@ -16,6 +16,10 @@ export function sortExperience(items: Experience[]) {
   });
 }
 
+export function getCurrentExperience(items: Experience[]) {
+  return sortExperience(items).find((item) => parsePeriod(item.period).ongoing);
+}
+
 export function formatExperiencePeriod(period: string, language: Language) {
   const { start, end, ongoing, hasRange } = parsePeriod(period);
   if (!start || !hasRange) return period;

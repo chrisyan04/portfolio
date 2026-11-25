@@ -3,11 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Code2, Lightbulb, Sparkles } from "lucide-react";
+import { ArrowUpRight, Code2, Lightbulb, MapPin, Sparkles } from "lucide-react";
 import { usePortfolio } from "@/components/PortfolioProvider";
+import { CountUpValue } from "@/components/CountUpValue";
+import { NowCarousel } from "@/components/NowCarousel";
+import { getCurrentExperience } from "@/lib/experience";
 
 export default function HomePage() {
   const { data, t } = usePortfolio();
+  const currentExperience = getCurrentExperience(data.experience);
   return <>
     <section className="home-grid hero-layout">
       <motion.div className="hero-intro" initial={{ opacity: 0, x: -25 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .7 }}>
@@ -28,7 +32,45 @@ export default function HomePage() {
         <Link className="hero-photo-icon hero-photo-icon-idea" href="/contact" aria-label={t.contact} title={t.contact}><Lightbulb size={23} strokeWidth={1.7} /></Link>
       </motion.div>
     </section>
-    <section className="section" id="about"><div className="section-heading"><div><div className="eyebrow">01 / {t.aboutLabel}</div><h2>{t.aboutTitle}</h2></div><p>{t.aboutDescription}</p></div><div className="about-grid"><div className="glass-card about-card"><div className="eyebrow">{t.currently}</div><h3>{data.role}</h3><p>{data.bio} {t.aboutExtra}</p><Link className="contact-email" href={`mailto:${data.email}`}>{data.email} ↗</Link></div><div className="stats">{data.stats.map((stat) => <div className="stat" key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></div>)}</div></div></section>
-    <section className="section"><div className="section-heading"><div><div className="eyebrow">02 / {t.nowLabel}</div><h2>{t.nowTitle}</h2></div><Link className="button" href="/experience">{t.timelineButton} ↗</Link></div><div className="glass-card about-card"><p style={{ maxWidth: 700 }}>{t.nowDescription}</p></div></section>
+    <section className="section about-section" id="about">
+      <div className="section-heading about-heading">
+        <div>
+          <div className="eyebrow">01 / {t.aboutLabel}</div>
+          <h2>{t.aboutTitle}</h2>
+        </div>
+      </div>
+      <div className="about-grid about-layout">
+        <motion.div className="about-profile-card" initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ duration: .55 }}>
+          <div className="about-profile-top">
+            <span className="about-current"><i aria-hidden="true" />{t.currently}</span>
+            <span className="about-location"><MapPin size={15} aria-hidden="true" />{data.location}</span>
+          </div>
+          <div className="about-profile-main">
+            <h3>{data.role}</h3>
+            {currentExperience?.company && <p className="about-workline"><span>{t.currentWork}</span><strong>{currentExperience.company}</strong></p>}
+            <p>{t.aboutExtra}</p>
+          </div>
+          <Link className="about-contact-link" href="/contact">
+            <span>{t.contact}</span><ArrowUpRight size={19} aria-hidden="true" />
+          </Link>
+        </motion.div>
+        <div className="about-stats">
+          {data.stats.map((stat, index) => <motion.div className="about-stat" key={`${stat.label}-${index}`} initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ duration: .5, delay: Math.min(index, 4) * .08 }}>
+            <span className="about-stat-index">{String(index + 1).padStart(2, "0")}</span>
+            <div><strong aria-label={stat.value}><CountUpValue value={stat.value} /></strong><span>{stat.label}</span></div>
+          </motion.div>)}
+        </div>
+      </div>
+    </section>
+    <section className="section now-section">
+      <div className="now-layout">
+        <div className="now-copy">
+          <div className="eyebrow">02 / {t.nowLabel}</div>
+          <h2>{t.nowTitle}</h2>
+          <Link className="button" href="/experience">{t.timelineButton} ↗</Link>
+        </div>
+        <NowCarousel />
+      </div>
+    </section>
   </>;
 }
