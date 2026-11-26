@@ -262,33 +262,46 @@ button, input, textarea,
   background: #c9c8cc;
   cursor: pointer;
 }
+.hero-portrait-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(79, 224, 208, .1), transparent 42%, rgba(168, 121, 255, .16));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .8s ease;
+}
 .hero-portrait-frame:focus-visible { outline: 3px solid var(--teal); outline-offset: 5px; }
 .hero-portrait-layer {
   position: absolute;
   inset: 0;
   display: block;
   backface-visibility: hidden;
-  transition: transform .85s cubic-bezier(.22, 1, .36, 1), opacity .65s ease;
+  transition: transform .9s cubic-bezier(.22, 1, .36, 1), opacity .75s ease;
 }
 .hero-portrait-layer img {
   object-fit: cover;
   object-position: center 31%;
 }
-.hero-portrait-hockey { transform: translateY(3%) scale(1.09); }
-.hero-portrait-professional { transform-origin: left center; }
+.hero-portrait-hockey { transform: scale(1.09); }
 .hero-portrait-frame.is-revealed .hero-portrait-hockey,
-.hero-portrait-frame:focus-visible .hero-portrait-hockey { transform: translateY(0) scale(1); }
+.hero-portrait-frame:focus-visible .hero-portrait-hockey { transform: scale(1); }
 .hero-portrait-frame.is-revealed .hero-portrait-professional,
 .hero-portrait-frame:focus-visible .hero-portrait-professional {
-  transform: translateX(-105%) rotate(-8deg);
-  opacity: .5;
+  transform: scale(1.04);
+  opacity: 0;
 }
+.hero-portrait-frame.is-revealed::after,
+.hero-portrait-frame:focus-visible::after { opacity: 1; }
 @media (hover: hover) {
-  .hero-portrait-frame:hover .hero-portrait-hockey { transform: translateY(0) scale(1); }
+  .hero-portrait-frame:hover .hero-portrait-hockey { transform: scale(1); }
   .hero-portrait-frame:hover .hero-portrait-professional {
-    transform: translateX(-105%) rotate(-8deg);
-    opacity: .5;
+    transform: scale(1.04);
+    opacity: 0;
   }
+  .hero-portrait-frame:hover::after { opacity: 1; }
 }
 .hero-photo-icon {
   position: absolute;
@@ -339,7 +352,7 @@ button, input, textarea,
   .hero-photo-icon-idea { left: -14px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-portrait-layer { transition: none; }
+  .hero-portrait-layer, .hero-portrait-frame::after { transition: none; }
   .hero-photo-icon { animation: none; transition: none; }
   .hero-photo-icon svg { transition: none; }
 }
