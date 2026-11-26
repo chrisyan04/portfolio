@@ -3,10 +3,10 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { Plus, Trash2, Upload } from "lucide-react";
-import { CountryMap, countryName } from "@/components/CountryMap";
+import { PlaceMap, placeName } from "@/components/PlaceMap";
 import { usePortfolio } from "@/components/PortfolioProvider";
-import { ContentLanguage, getPortfolioPhotos, getVisitedCountries, Language, localizePortfolio, PortfolioData } from "@/lib/portfolio";
-import { countryShapes } from "@/lib/world-countries";
+import { ContentLanguage, getPortfolioPhotos, getVisitedPlaces, Language, localizePortfolio, PortfolioData } from "@/lib/portfolio";
+import { selectablePlaces } from "@/lib/place-shapes";
 
 type Experience = PortfolioData["experience"][number];
 type Project = PortfolioData["projects"][number];
@@ -26,13 +26,13 @@ export default function AdminPage() {
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoMessage, setPhotoMessage] = useState("");
   const [editingLanguage, setEditingLanguage] = useState<Language>("en");
-  const [countrySearch, setCountrySearch] = useState("");
-  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
+  const [placeSearch, setPlaceSearch] = useState("");
+  const [hoveredPlace, setHoveredPlace] = useState<string | null>(null);
   const preview = localizePortfolio(draft, editingLanguage);
-  const visitedCountries = getVisitedCountries(draft);
-  const visibleCountries = countryShapes
-    .filter((country) => countryName(country, editingLanguage).toLocaleLowerCase().includes(countrySearch.trim().toLocaleLowerCase()) || country[0].toLocaleLowerCase().includes(countrySearch.trim().toLocaleLowerCase()))
-    .sort((a, b) => Number(visitedCountries.includes(b[0])) - Number(visitedCountries.includes(a[0])) || countryName(a, editingLanguage).localeCompare(countryName(b, editingLanguage)));
+  const visitedPlaces = getVisitedPlaces(draft);
+  const visiblePlaces = selectablePlaces
+    .filter((country) => placeName(country, editingLanguage).toLocaleLowerCase().includes(placeSearch.trim().toLocaleLowerCase()) || country[0].toLocaleLowerCase().includes(placeSearch.trim().toLocaleLowerCase()))
+    .sort((a, b) => Number(visitedPlaces.includes(b[0])) - Number(visitedPlaces.includes(a[0])) || placeName(a, editingLanguage).localeCompare(placeName(b, editingLanguage)));
 
   useEffect(() => { if (!dirty) setDraft(data); }, [data, dirty]);
   useEffect(() => {
@@ -76,9 +76,9 @@ export default function AdminPage() {
     });
     setDirty(true); setSaved(false);
   }
-  function toggleCountry(code: string) {
-    const countries = getVisitedCountries(draft);
-    updateField("countries", countries.includes(code) ? countries.filter((item) => item !== code) : [...countries, code]);
+  function togglePlace(code: string) {
+    const places = getVisitedPlaces(draft);
+    updateField("visitedPlaces", places.includes(code) ? places.filter((item) => item !== code) : [...places, code]);
   }
 
   async function save() {
@@ -178,13 +178,13 @@ export default function AdminPage() {
         </div>)}
       </section>
       <section className="admin-section glass-card">
-        <div className="admin-section-heading"><div><h2>Visited countries</h2><p>Select countries on the map or search below. Changes appear for everyone after publishing.</p></div><strong>{visitedCountries.length} selected</strong></div>
-        <div className="admin-country-map"><CountryMap visited={visitedCountries} hoverCode={hoveredCountry} language={editingLanguage} interactiveAll onSelect={toggleCountry} onHover={setHoveredCountry} /></div>
-        <label className="field admin-country-search"><span>Find a country</span><input type="search" value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} placeholder="Search countries" /></label>
+        <div className="admin-section-heading"><div><h2>Visited places</h2><p>Select places on the map or search below. Changes appear for everyone after publishing.</p></div><strong>{visitedPlaces.length} selected</strong></div>
+        <div className="admin-country-map"><PlaceMap visited={visitedPlaces} hoverCode={hoveredPlace} language={editingLanguage} interactiveAll onSelect={togglePlace} onHover={setHoveredPlace} /></div>
+        <label className="field admin-country-search"><span>Find a place</span><input type="search" value={placeSearch} onChange={(event) => setPlaceSearch(event.target.value)} placeholder="Search places" /></label>
         <div className="admin-country-list">
-          {visibleCountries.map((country) => {
-            const selected = visitedCountries.includes(country[0]);
-            return <button type="button" key={country[0]} className={`admin-country-option ${selected ? "selected" : ""}`} aria-pressed={selected} onClick={() => toggleCountry(country[0])} onMouseEnter={() => setHoveredCountry(country[0])} onMouseLeave={() => setHoveredCountry(null)}><span>{countryName(country, editingLanguage)}</span>{selected && <small>✓</small>}</button>;
+          {visiblePlaces.map((country) => {
+            const selected = visitedPlaces.includes(country[0]);
+            return <button type="button" key={country[0]} className={`admin-country-option ${selected ? "selected" : ""}`} aria-pressed={selected} onClick={() => togglePlace(country[0])} onMouseEnter={() => setHoveredPlace(country[0])} onMouseLeave={() => setHoveredPlace(null)}><span>{placeName(country, editingLanguage)}</span>{selected && <small>✓</small>}</button>;
           })}
         </div>
       </section>

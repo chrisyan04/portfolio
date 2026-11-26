@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -40,17 +40,17 @@ function SwipeCard({ src, alt, onSwipe, onPreviewDirection, reducedMotion, canSw
     exit="exit"
     drag={reducedMotion || !canSwipe ? false : "x"}
     dragConstraints={{ left: 0, right: 0 }}
-    dragElastic={.55}
+    dragElastic={.78}
     dragMomentum={false}
     dragTransition={{ bounceStiffness: 260, bounceDamping: 28 }}
     whileDrag={{ scale: 1.015 }}
     onDrag={(_, info) => {
-      if (Math.abs(info.offset.x) > 12) onPreviewDirection(info.offset.x < 0 ? -1 : 1);
+      if (Math.abs(info.offset.x) > 32) onPreviewDirection(info.offset.x < 0 ? -1 : 1);
     }}
     onDragEnd={(_, info) => {
       if (Math.abs(info.offset.x) > 85 || (Math.abs(info.velocity.x) > 550 && Math.abs(info.offset.x) > 24)) {
         onSwipe(info.offset.x < 0 ? -1 : 1);
-      }
+      } else onPreviewDirection(-1);
     }}
   >
     <Image src={src} alt={alt} fill sizes="(max-width: 800px) 85vw, 390px" draggable={false} />
@@ -63,8 +63,17 @@ export function NowCarousel() {
   const reducedMotion = Boolean(useReducedMotion());
   const [active, setActive] = useState(0);
   const [direction, setDirection] = useState<SwipeDirection>(-1);
+  const [frontVisible, setFrontVisible] = useState(true);
   const transitioning = useRef(false);
+  const pendingDirection = useRef<SwipeDirection>(-1);
   const previewDirection = useRef<SwipeDirection>(-1);
+
+  useEffect(() => {
+    if (photos.length) return;
+    transitioning.current = false;
+    setFrontVisible(true);
+    setActive(0);
+  }, [photos.length]);
 
   function showDirection(nextDirection: SwipeDirection) {
     if (previewDirection.current === nextDirection) return;
@@ -75,8 +84,18 @@ export function NowCarousel() {
   function swipe(nextDirection: SwipeDirection) {
     if (photos.length < 2 || transitioning.current) return;
     transitioning.current = true;
+    pendingDirection.current = nextDirection;
     showDirection(nextDirection);
-    setActive((index) => (index + (nextDirection === -1 ? 1 : -1) + photos.length) % photos.length);
+    setFrontVisible(false);
+  }
+
+  function finishSwipe() {
+    if (!transitioning.current) return;
+    setActive((index) => (index + (pendingDirection.current === -1 ? 1 : -1) + photos.length) % photos.length);
+    setFrontVisible(true);
+    transitioning.current = false;
+    previewDirection.current = -1;
+    setDirection(-1);
   }
 
   const currentIndex = photos.length ? active % photos.length : 0;
@@ -85,11 +104,11 @@ export function NowCarousel() {
 
   return <motion.div className="now-carousel" role="region" aria-roledescription="carousel" aria-label={t.nowTitle} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ duration: reducedMotion ? 0 : .6 }}>
     <div className="now-carousel-image">
-      {[2, 1].map((depth) => <div className="now-card now-card-back" key={depth} style={{ transform: `translateY(${-depth * 10}px) scale(${1 - depth * .045}) rotate(${depth === 1 ? 2 : -2}deg)`, zIndex: 2 - depth }} aria-hidden="true">
-        <Image src={photos[(currentIndex + (direction === -1 ? depth : -depth) + photos.length) % photos.length]} alt="" fill sizes="(max-width: 800px) 85vw, 390px" draggable={false} />
+      {photos.length > 1 && (photos.length > 2 ? [2, 1] : [1]).map((depth) => <div className="now-card now-card-back" key={depth} style={{ transform: `translateY(${-depth * 10}px) scale(${1 - depth * .045}) rotate(${depth === 1 ? 2 : -2}deg)`, zIndex: 2 - depth }} aria-hidden="true">
+        <Image src={photos[(currentIndex + (direction === -1 ? depth : -depth) + photos.length) % photos.length]} alt="" fill sizes="(max-width: 800px) 85vw, 390px" loading={depth === 1 ? "eager" : "lazy"} draggable={false} />
       </div>)}
-      <AnimatePresence initial={false} custom={direction} onExitComplete={() => { transitioning.current = false; }}>
-        <SwipeCard key={`${currentIndex}-${photos[currentIndex]}`} src={photos[currentIndex]} alt={t.carouselPhotoAlt} reducedMotion={reducedMotion} canSwipe={photos.length > 1} onSwipe={swipe} onPreviewDirection={showDirection} />
+      <AnimatePresence initial={false} custom={direction} onExitComplete={finishSwipe}>
+        {frontVisible && <SwipeCard key={`${currentIndex}-${photos[currentIndex]}`} src={photos[currentIndex]} alt={t.carouselPhotoAlt} reducedMotion={reducedMotion} canSwipe={photos.length > 1} onSwipe={swipe} onPreviewDirection={showDirection} />}
       </AnimatePresence>
     </div>
     <div className="now-carousel-footer">
