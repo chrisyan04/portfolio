@@ -3,9 +3,10 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { Plus, Trash2, Upload } from "lucide-react";
+import { CountryMap, countryName } from "@/components/CountryMap";
 import { usePortfolio } from "@/components/PortfolioProvider";
-import { ContentLanguage, getPortfolioPhotos, getPortfolioPlaces, Language, localizePortfolio, Place, PortfolioData } from "@/lib/portfolio";
-import { mapCoordinates, mapPosition } from "@/lib/world-map";
+import { ContentLanguage, getPortfolioPhotos, getVisitedCountries, Language, localizePortfolio, PortfolioData } from "@/lib/portfolio";
+import { countryShapes } from "@/lib/world-countries";
 
 type Experience = PortfolioData["experience"][number];
 type Project = PortfolioData["projects"][number];
@@ -25,8 +26,13 @@ export default function AdminPage() {
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoMessage, setPhotoMessage] = useState("");
   const [editingLanguage, setEditingLanguage] = useState<Language>("en");
-  const [pinPickerIndex, setPinPickerIndex] = useState<number | null>(null);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const preview = localizePortfolio(draft, editingLanguage);
+  const visitedCountries = getVisitedCountries(draft);
+  const visibleCountries = countryShapes
+    .filter((country) => countryName(country, editingLanguage).toLocaleLowerCase().includes(countrySearch.trim().toLocaleLowerCase()) || country[0].toLocaleLowerCase().includes(countrySearch.trim().toLocaleLowerCase()))
+    .sort((a, b) => Number(visitedCountries.includes(b[0])) - Number(visitedCountries.includes(a[0])) || countryName(a, editingLanguage).localeCompare(countryName(b, editingLanguage)));
 
   useEffect(() => { if (!dirty) setDraft(data); }, [data, dirty]);
   useEffect(() => {
@@ -61,24 +67,18 @@ export default function AdminPage() {
     setDraft((previous) => ({ ...previous, translations: { ...previous.translations, [language]: { ...previous.translations?.[language], [field]: value } } }));
     setDirty(true); setSaved(false);
   }
-  function updateTranslatedEntry(section: "stats" | "experience" | "projects" | "places", index: number, language: ContentLanguage, field: string, value: string | string[]) {
+  function updateTranslatedEntry(section: "stats" | "experience" | "projects", index: number, language: ContentLanguage, field: string, value: string | string[]) {
     setDraft((previous) => {
       const next = structuredClone(previous);
-      if (section === "places") next.places = structuredClone(getPortfolioPlaces(next));
-      const entry = (section === "places" ? next.places?.[index] : next[section][index]) as { translations?: Partial<Record<ContentLanguage, Record<string, unknown>>> };
+      const entry = next[section][index] as { translations?: Partial<Record<ContentLanguage, Record<string, unknown>>> };
       entry.translations = { ...entry.translations, [language]: { ...entry.translations?.[language], [field]: value } };
       return next;
     });
     setDirty(true); setSaved(false);
   }
-  function updatePlace(index: number, patch: Partial<Place>) {
-    setDraft((previous) => ({ ...previous, places: getPortfolioPlaces(previous).map((place, position) => position === index ? { ...place, ...patch } : place) }));
-    setDirty(true); setSaved(false);
-  }
-  function addPlace() {
-    const places = getPortfolioPlaces(draft);
-    updateField("places", [...places, { id: crypto.randomUUID(), name: "", country: "", latitude: 43.6532, longitude: -79.3832, note: "", year: "" }]);
-    setPinPickerIndex(places.length);
+  function toggleCountry(code: string) {
+    const countries = getVisitedCountries(draft);
+    updateField("countries", countries.includes(code) ? countries.filter((item) => item !== code) : [...countries, code]);
   }
 
   async function save() {
@@ -178,29 +178,15 @@ export default function AdminPage() {
         </div>)}
       </section>
       <section className="admin-section glass-card">
-        <div className="admin-section-heading"><div><h2>Places</h2><p>Add a place, then click the map to position its pin. Places appear on the public map after publishing.</p></div>{editingLanguage === "en" && <button className="button" type="button" onClick={addPlace}><Plus size={16} /> Add place</button>}</div>
-        {getPortfolioPlaces(draft).map((place, index) => <div className="admin-entry" key={place.id}>
-          <div className="admin-entry-heading"><strong>{place.name || `Place ${index + 1}`}</strong>{editingLanguage === "en" && <button className="icon-button" type="button" aria-label={`Remove ${place.name || `place ${index + 1}`}`} onClick={() => { updateField("places", getPortfolioPlaces(draft).filter((_, position) => position !== index)); setPinPickerIndex(null); }}><Trash2 size={17} /></button>}</div>
-          {editingLanguage === "en" ? <>
-            <label className="field"><span>place or city</span><input value={place.name} onChange={(event) => updatePlace(index, { name: event.target.value })} /></label>
-            <label className="field"><span>country</span><input value={place.country} onChange={(event) => updatePlace(index, { country: event.target.value })} /></label>
-            <label className="field"><span>short note</span><textarea value={place.note} onChange={(event) => updatePlace(index, { note: event.target.value })} /></label>
-            <label className="field"><span>year or trip date (optional)</span><input value={place.year} onChange={(event) => updatePlace(index, { year: event.target.value })} /></label>
-            <div className="admin-place-coordinates">
-              <label className="field"><span>latitude</span><input type="number" min="-60" max="85" step="0.0001" value={place.latitude} onChange={(event) => updatePlace(index, { latitude: Number(event.target.value) })} /></label>
-              <label className="field"><span>longitude</span><input type="number" min="-180" max="180" step="0.0001" value={place.longitude} onChange={(event) => updatePlace(index, { longitude: Number(event.target.value) })} /></label>
-            </div>
-            <button className="button admin-place-pick-trigger" type="button" aria-expanded={pinPickerIndex === index} onClick={() => setPinPickerIndex(pinPickerIndex === index ? null : index)}>{pinPickerIndex === index ? "Hide map" : "Choose pin on map"}</button>
-            {pinPickerIndex === index && <button className="admin-place-picker" type="button" aria-label={`Position pin for ${place.name || `place ${index + 1}`}`} onClick={(event) => {
-              if (event.detail === 0) return;
-              const rect = event.currentTarget.getBoundingClientRect();
-              updatePlace(index, mapCoordinates((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height));
-            }}><Image src="/world-land.svg" alt="" fill sizes="(max-width: 760px) 90vw, 680px" draggable={false} /><span className="admin-place-marker" style={mapPosition(place.latitude, place.longitude)} /></button>}
-          </> : <>
-            {(["name", "country"] as const).map((field) => <label className="field" key={field}><span>{field}</span><input value={place.translations?.[editingLanguage]?.[field] ?? ""} placeholder={getPortfolioPlaces(preview)[index]?.[field]} onChange={(event) => updateTranslatedEntry("places", index, editingLanguage, field, event.target.value)} /></label>)}
-            <label className="field"><span>short note</span><textarea value={place.translations?.[editingLanguage]?.note ?? ""} placeholder={getPortfolioPlaces(preview)[index]?.note} onChange={(event) => updateTranslatedEntry("places", index, editingLanguage, "note", event.target.value)} /></label>
-          </>}
-        </div>)}
+        <div className="admin-section-heading"><div><h2>Visited countries</h2><p>Select countries on the map or search below. Changes appear for everyone after publishing.</p></div><strong>{visitedCountries.length} selected</strong></div>
+        <div className="admin-country-map"><CountryMap visited={visitedCountries} hoverCode={hoveredCountry} language={editingLanguage} interactiveAll onSelect={toggleCountry} onHover={setHoveredCountry} /></div>
+        <label className="field admin-country-search"><span>Find a country</span><input type="search" value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} placeholder="Search countries" /></label>
+        <div className="admin-country-list">
+          {visibleCountries.map((country) => {
+            const selected = visitedCountries.includes(country[0]);
+            return <button type="button" key={country[0]} className={`admin-country-option ${selected ? "selected" : ""}`} aria-pressed={selected} onClick={() => toggleCountry(country[0])} onMouseEnter={() => setHoveredCountry(country[0])} onMouseLeave={() => setHoveredCountry(null)}><span>{countryName(country, editingLanguage)}</span>{selected && <small>✓</small>}</button>;
+          })}
+        </div>
       </section>
       <div className="admin-actions"><button className="button primary" type="button" onClick={save} disabled={saving || photoBusy || !storageConfigured}>{saving ? "Publishing…" : "Publish changes"}</button><button className="button" type="button" onClick={() => { setDraft(data); setDirty(false); setSaved(false); }}>Reset draft</button><button className="button" type="button" onClick={async () => { await fetch("/api/admin/logout", { method: "POST" }); setAuthenticated(false); }}>Lock</button>{saved && <span role="status">Published for all visitors</span>}{error && <span className="error" role="alert">{error}</span>}</div>
     </div>

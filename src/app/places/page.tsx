@@ -1,29 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
-import { MapPin, MoveUpRight } from "lucide-react";
+import { useState } from "react";
+import { Globe2 } from "lucide-react";
+import { CountryMap, countryName } from "@/components/CountryMap";
 import { usePortfolio } from "@/components/PortfolioProvider";
-import { getPortfolioPlaces } from "@/lib/portfolio";
-import { mapPosition } from "@/lib/world-map";
+import { getVisitedCountries } from "@/lib/portfolio";
+import { countryShapes } from "@/lib/world-countries";
 
 export default function PlacesPage() {
-  const { localizedData, t } = usePortfolio();
-  const places = getPortfolioPlaces(localizedData);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const mapScrollRef = useRef<HTMLDivElement>(null);
-  const selected = places.find((place) => place.id === selectedId) ?? places[0];
-
-  function selectPlace(id: string, longitude: number) {
-    setSelectedId(id);
-    const scroll = mapScrollRef.current;
-    if (!scroll) return;
-    const pinX = ((longitude + 180) / 360) * scroll.scrollWidth;
-    scroll.scrollTo({
-      left: pinX - scroll.clientWidth / 2,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
-    });
-  }
+  const { localizedData, language, t } = usePortfolio();
+  const visited = getVisitedCountries(localizedData);
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const [hoverCode, setHoverCode] = useState<string | null>(null);
+  const activeCode = selectedCode && visited.includes(selectedCode) ? selectedCode : visited[0];
+  const selected = countryShapes.find(([code]) => code === activeCode);
+  const hovered = countryShapes.find(([code]) => code === hoverCode);
 
   return <section className="places-page">
     <div className="page-top places-heading">
@@ -34,42 +25,32 @@ export default function PlacesPage() {
     <div className="places-layout">
       <div className="places-map-panel">
         <div className="places-map-header">
-          <span className="places-map-status"><span aria-hidden="true" />{t.placesLabel}</span>
-          <span className="places-map-count">{places.length} {places.length === 1 ? t.placesCountOne : t.placesCount}</span>
+          <span className="places-map-status"><span aria-hidden="true" />{hovered ? countryName(hovered, language) : t.placesLabel}</span>
+          <span className="places-map-count">{visited.length} {visited.length === 1 ? t.placesCountOne : t.placesCount}</span>
         </div>
-        <div className="places-map-scroll" ref={mapScrollRef}>
-          <div className="places-map-canvas" role="group" aria-label={t.placesDescription}>
-            <div className="places-map-grid" aria-hidden="true" />
-            <Image className="places-map-land" src="/world-land.svg" alt="" fill sizes="(max-width: 800px) 740px, 72vw" priority draggable={false} />
-            {places.map((place) => <button
-              type="button"
-              key={place.id}
-              className={`places-pin ${selected?.id === place.id ? "selected" : ""}`}
-              style={mapPosition(place.latitude, place.longitude)}
-              aria-label={`${place.name}, ${place.country}`}
-              aria-pressed={selected?.id === place.id}
-              onClick={() => selectPlace(place.id, place.longitude)}
-            ><span className="places-pin-dot" /><span className="places-pin-label">{place.name}</span></button>)}
-          </div>
+        <div className="places-map-scroll">
+          <CountryMap visited={visited} activeCode={activeCode} hoverCode={hoverCode} language={language} onSelect={setSelectedCode} onHover={setHoverCode} />
         </div>
         <div className="places-map-footer"><span>{t.placesHint}</span><span>Map: Natural Earth</span></div>
       </div>
       <aside className="places-sidebar">
-        {selected ? <div className="places-selected" key={selected.id}>
-          <div className="eyebrow">{String(places.indexOf(selected) + 1).padStart(2, "0")} / {t.placesLabel}</div>
-          <div className="places-selected-icon"><MapPin size={24} strokeWidth={1.5} aria-hidden="true" /></div>
-          <h2>{selected.name}</h2>
-          <p className="places-selected-country">{selected.country}</p>
-          {selected.note && <p className="places-selected-note">{selected.note}</p>}
-          {selected.year && <p className="places-selected-year">{t.placesYear} {selected.year}</p>}
-        </div> : <p className="places-selected-note">{t.placesEmpty}</p>}
-        {places.length > 1 && <div className="places-list" aria-label={t.placesLabel}>
-          {places.map((place, index) => <button type="button" key={place.id} className={selected?.id === place.id ? "selected" : ""} aria-pressed={selected?.id === place.id} onClick={() => selectPlace(place.id, place.longitude)}>
-            <span className="places-list-number">{String(index + 1).padStart(2, "0")}</span>
-            <span className="places-list-name">{place.name}<small>{place.country}</small></span>
-            <MoveUpRight size={16} strokeWidth={1.6} aria-hidden="true" />
-          </button>)}
-        </div>}
+        {selected ? <div className="places-selected" key={selected[0]}>
+          <div className="eyebrow">{String(visited.indexOf(selected[0]) + 1).padStart(2, "0")} / {String(visited.length).padStart(2, "0")}</div>
+          <div className="places-selected-icon"><Globe2 size={23} strokeWidth={1.5} aria-hidden="true" /></div>
+          <h2>{countryName(selected, language)}</h2>
+          <p className="places-selected-country">{t.placesYear}</p>
+        </div> : <div className="places-selected"><p className="places-selected-note">{t.placesEmpty}</p></div>}
+        <div className="places-list" aria-label={t.placesLabel}>
+          {visited.map((code, index) => {
+            const country = countryShapes.find(([shapeCode]) => shapeCode === code);
+            if (!country) return null;
+            return <button type="button" key={code} className={activeCode === code ? "selected" : ""} aria-pressed={activeCode === code} onClick={() => setSelectedCode(code)} onMouseEnter={() => setHoverCode(code)} onMouseLeave={() => setHoverCode(null)}>
+              <span className="places-list-number">{String(index + 1).padStart(2, "0")}</span>
+              <span className="places-list-name">{countryName(country, language)}</span>
+              <span className="places-list-dot" aria-hidden="true" />
+            </button>;
+          })}
+        </div>
       </aside>
     </div>
   </section>;
