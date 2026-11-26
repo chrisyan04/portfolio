@@ -2,6 +2,25 @@ body {
   font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
 }
 
+html,
+body,
+.places-list,
+.places-map-scroll,
+.admin-country-map,
+.admin-country-list {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.places-list::-webkit-scrollbar,
+.places-map-scroll::-webkit-scrollbar,
+.admin-country-map::-webkit-scrollbar,
+.admin-country-list::-webkit-scrollbar {
+  display: none;
+}
+
 h1, h2, h3 {
   font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   font-weight: 600;
@@ -585,7 +604,7 @@ button, input, textarea,
 .places-map-status { display: inline-flex; align-items: center; gap: 9px; color: #d9d2ec; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .places-map-status span { width: 7px; height: 7px; border-radius: 50%; background: #4fe0d0; box-shadow: 0 0 13px #4fe0d0; }
 .places-map-count { color: #b4abc7; font-size: 12px; white-space: nowrap; }
-.places-map-scroll { overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-color: rgba(168, 121, 255, .4) transparent; scrollbar-width: thin; }
+.places-map-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
 .country-map-svg { display: block; width: 100%; min-width: 700px; height: auto; aspect-ratio: 2 / 1; }
 .country-map-grid path { fill: none; stroke: rgba(204, 197, 230, .09); stroke-width: 1; pointer-events: none; }
 .country-map-land path { fill: #393849; stroke: #77728c; stroke-width: .5; vector-effect: non-scaling-stroke; transition: fill .2s ease, stroke .2s ease; }
@@ -603,7 +622,7 @@ button, input, textarea,
 .places-selected h2 { margin: 0; font-size: clamp(32px, 3.1vw, 48px); font-weight: 400; line-height: 1.08; overflow-wrap: anywhere; }
 .places-selected-country { display: inline-flex; margin: 15px 0 0; padding: 5px 10px; border: 1px solid rgba(79, 224, 208, .25); border-radius: 999px; color: var(--teal); background: rgba(79, 224, 208, .07); font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
 .places-selected-note { margin: 18px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.places-list { display: grid; gap: 4px; max-height: 284px; overflow-y: auto; scrollbar-width: thin; }
+.places-list { display: grid; gap: 4px; max-height: 284px; overflow-y: auto; }
 .places-list button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 13px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: var(--muted); text-align: left; cursor: pointer; transition: color .2s ease, background .2s ease, border-color .2s ease; }
 .places-list button:hover, .places-list button.selected { border-color: var(--line); background: var(--surface); color: var(--text); }
 .places-list button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }

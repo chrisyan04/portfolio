@@ -70,7 +70,7 @@ export default function HomePage() {
         <div className="now-copy">
           <div className="eyebrow">02 / {t.nowLabel}</div>
           <h2>{t.nowTitle}</h2>
-          <Link className="button" href="/experience">{t.timelineButton} ↗</Link>
+          <Link className="button" href="/places">{t.placesButton} ↗</Link>
         </div>
         <NowCarousel />
       </div>
