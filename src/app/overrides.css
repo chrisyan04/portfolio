@@ -252,14 +252,43 @@ button, input, textarea,
 }
 .hero-portrait-frame {
   position: relative;
+  display: block;
+  width: 100%;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  padding: 0;
+  border: 0;
   border-radius: 21px;
   background: #c9c8cc;
+  cursor: pointer;
 }
-.hero-portrait-frame img {
+.hero-portrait-frame:focus-visible { outline: 3px solid var(--teal); outline-offset: 5px; }
+.hero-portrait-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  backface-visibility: hidden;
+  transition: transform .85s cubic-bezier(.22, 1, .36, 1), opacity .65s ease;
+}
+.hero-portrait-layer img {
   object-fit: cover;
   object-position: center 31%;
+}
+.hero-portrait-hockey { transform: translateY(3%) scale(1.09); }
+.hero-portrait-professional { transform-origin: left center; }
+.hero-portrait-frame.is-revealed .hero-portrait-hockey,
+.hero-portrait-frame:focus-visible .hero-portrait-hockey { transform: translateY(0) scale(1); }
+.hero-portrait-frame.is-revealed .hero-portrait-professional,
+.hero-portrait-frame:focus-visible .hero-portrait-professional {
+  transform: translateX(-105%) rotate(-8deg);
+  opacity: .5;
+}
+@media (hover: hover) {
+  .hero-portrait-frame:hover .hero-portrait-hockey { transform: translateY(0) scale(1); }
+  .hero-portrait-frame:hover .hero-portrait-professional {
+    transform: translateX(-105%) rotate(-8deg);
+    opacity: .5;
+  }
 }
 .hero-photo-icon {
   position: absolute;
@@ -310,6 +339,7 @@ button, input, textarea,
   .hero-photo-icon-idea { left: -14px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .hero-portrait-layer { transition: none; }
   .hero-photo-icon { animation: none; transition: none; }
   .hero-photo-icon svg { transition: none; }
 }

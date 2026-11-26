@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -11,6 +12,7 @@ import { getCurrentExperience } from "@/lib/experience";
 
 export default function HomePage() {
   const { localizedData: data, language, t } = usePortfolio();
+  const [hockeyRevealed, setHockeyRevealed] = useState(false);
   const currentExperience = getCurrentExperience(data.experience);
   return <>
     <section className="home-grid hero-layout">
@@ -27,9 +29,20 @@ export default function HomePage() {
         </div>
       </motion.div>
       <motion.div className="hero-portrait" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .15 }}>
-        <div className="hero-portrait-frame">
-          <Image src="/me-professional.jpg" alt={`Portrait of ${data.name}`} fill priority sizes="(max-width: 800px) 82vw, 36vw" />
-        </div>
+        <button
+          className={`hero-portrait-frame${hockeyRevealed ? " is-revealed" : ""}`}
+          type="button"
+          aria-label={hockeyRevealed ? t.hockeyHide : t.hockeyReveal}
+          aria-pressed={hockeyRevealed}
+          onClick={() => setHockeyRevealed((revealed) => !revealed)}
+        >
+          <span className="hero-portrait-layer hero-portrait-hockey" aria-hidden="true">
+            <Image src="/hockey-me.webp" alt="" fill sizes="(max-width: 800px) 82vw, 36vw" />
+          </span>
+          <span className="hero-portrait-layer hero-portrait-professional" aria-hidden="true">
+            <Image src="/me-professional.jpg" alt="" fill priority sizes="(max-width: 800px) 82vw, 36vw" />
+          </span>
+        </button>
         <Link className="hero-photo-icon hero-photo-icon-sparkle" href="/experience" aria-label={t.viewWork} title={t.viewWork}><Sparkles size={24} strokeWidth={1.7} /></Link>
         <Link className="hero-photo-icon hero-photo-icon-code" href="/projects" aria-label={t.projectsLabel} title={t.projectsLabel}><Code2 size={23} strokeWidth={1.7} /></Link>
         <Link className="hero-photo-icon hero-photo-icon-idea" href="/contact" aria-label={t.contact} title={t.contact}><Lightbulb size={23} strokeWidth={1.7} /></Link>
