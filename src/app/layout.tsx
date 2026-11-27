@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { PortfolioProvider } from "@/components/PortfolioProvider";
 import SiteChrome from "@/components/SiteChrome";
@@ -22,7 +23,12 @@ export default async function RootLayout({
   catch (error) { console.error("Could not load portfolio content", error); }
   return (
     <html lang="en">
-      <body><PortfolioProvider initialContent={initial}><SiteChrome>{children}</SiteChrome></PortfolioProvider></body>
+      <body>
+        <PortfolioProvider initialContent={initial}>
+          <SiteChrome>{children}</SiteChrome>
+        </PortfolioProvider>
+        <Analytics />
+      </body>
     </html>
   );
 }
